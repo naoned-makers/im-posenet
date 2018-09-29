@@ -7,7 +7,6 @@ I want to do https://medium.com/tensorflow/real-time-human-pose-estimation-in-th
 From a webrtc stream comming form RPI like https://www.linux-projects.org/uv4l/tutorials/custom-webapp-with-face-detection/
 After trying uv4l i switch to rpi-webrtc-streamer (who rocks) see reason http://www.softwaresamurai.org/2017/10/14/uv4l-webrtc-vs-rpi-webrtc-streamer/
 
-
 # Install
 * Clone this repo one a rpi3 under /home/pi/dev/
 Follow https://github.com/kclyu/rpi-webrtc-streamer-deb
