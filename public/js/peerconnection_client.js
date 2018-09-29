@@ -36,7 +36,15 @@ function PeerConnectionClient(remoteVideo, doSendPeerMessage) {
     this.peerConnection_.oniceconnectionstatechange =
         this.onIceConnectionStateChanged_.bind(this);
     trace("Created RTCPeerConnnection with config: " + JSON.stringify(this.pcConfig_));
+    //start start gathering
+    getStats(this.peerConnection_,onWebrtcStats,2000);
+
 };
+var globalStatsResult;
+function onWebrtcStats(statsResult){
+    displayWebrtcStats(statsResult);
+    globalStatsResult = statsResult;//used to call nomore
+}
 
 PeerConnectionClient.prototype.onIceCandidate_ = function(event) {
     if (!this.peerConnection_) {
@@ -98,7 +106,11 @@ PeerConnectionClient.prototype.close = function() {
     if (!this.peerConnection_) {
         return;
     }
-
+    if(globalStatsResult){
+        globalStatsResult.nomore();
+        globalStatsResult = null;
+    }
+    onPeerConnectionClose();//Do main js stuff
     this.peerConnection_.close();
     window.dispatchEvent(new CustomEvent('peerconnectionclosed', {
         detail: {
@@ -157,8 +169,7 @@ PeerConnectionClient.prototype.onReceivePeerMessage = function (data) {
         this.peerConnection_.addIceCandidate(ice_candidate)
             .then(trace.bind(null, 'Remote candidate added successfully.'))
             .catch(this.onError_.bind(this, 'addIceCandidate'));
-        this.peerConnection_.getStats().then(console.log);
-
+            console.log(this.peerConnection_);
     }
 };
 

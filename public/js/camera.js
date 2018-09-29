@@ -16,8 +16,7 @@
  */
 
 
-const videoWidth = 600;
-const videoHeight = 500;
+
 const stats = new Stats();
 var requestId;
 
@@ -66,12 +65,13 @@ function setupGui(cameras, net) {
   guiState.net = net;
 
   const gui = new dat.GUI({width: 300});
+  gui.remember(guiState);
 
   // The single-pose algorithm is faster and simpler but requires only one
   // person to be in the frame or results will be innaccurate. Multi-pose works
   // for more than 1 person
   const algorithmController =
-      gui.add(guiState, 'algorithm', ['single-pose', 'multi-pose']);
+      gui.add(guiState, 'algorithm', ['single-pose', 'multi-pose','no-pose']);
 
   // The input parameters have the most effect on accuracy and speed of the
   // network

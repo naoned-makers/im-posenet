@@ -2,110 +2,125 @@
 <html>
 
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- load custom font -->
-  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet" type="text/css" />
-  <!-- load MUI -->
-  <link href="css/mui.min.css" rel="stylesheet" type="text/css" />
-  <script src="js/third_party/mui.min.js"></script>
-  <!-- custom font css -->
-  <style>
-    body {
-        font-family: "Roboto", "Helvetica Neue", Helvetica, Arial;
-      }
-  </style>
-  <!-- Param and graph lib -->
-  <script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.2/build/dat.gui.min.js"></script>
-  <script src="https://rawgit.com/mrdoob/stats.js/master/build/stats.min.js"></script>
-  <!-- Load TensorFlow.js -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.7"></script>
-  <!-- Load Posenet -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@0.1.2"></script>
-  <!-- Load Posenet canvas ui draw functions -->
-  <script src="js/demo_util.js"></script>
-  <!-- Load Posenet parametrage gui functions -->
-  <script src="js/camera.js"></script>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>IronMan Control</title>
+    <link href="css/mui.min.css" rel="stylesheet" type="text/css" />
+    <script src="js/third_party/mui.min.js"></script>
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <style type="">
+        /**
+ * Body CSS
+ */
 
-  <!-- Load webrtc stuff from rws -->
-  <script src="js/common.js"></script>
-  <script src="js/sdputils.js"></script>
-  <script src="js/peerconnection_client.js"></script>
-  <script src="js/websocket_signaling.js"></script>
-  <script src="js/third_party/adapter-latest.js"></script>
-
-  <script type="text/javascript">
-    /**
-     * Kicks off the demo by loading the posenet model, finding and loading
-     * available camera devices, and setting off the detectPoseInRealTime function.
-     */
-    async function bindPage() {
-      var remoteVideoElement = document.getElementById('remoteVideo');
-      //remoteVideoElement.width = videoWidth;
-      //remoteVideoElement.height = videoHeight;
-      var canvas = document.getElementById('output');
-      var ctx = canvas.getContext('2d');
-
-      var connectButton = document.getElementById("Connect");
-      var disconnectButton = document.getElementById("Disconnect");
-      var detectBtn = document.getElementById('detectBtn');
-      var isPosenetActive = false;
-      
-      //configure webrtc Signaling
-      var websocketSignalingChannel = new WebSocketSignalingChannel(connectButton, disconnectButton, remoteVideoElement);
-
-      // Load the PoseNet model weights with architecture 0.75
-      const net = await posenet.load(0.75);
-
-      setupGui([], net);
-      setupFPS();
-
-      //detectPoseInRealTime(video, net);
-
-
-      // Wait until the video stream can play
-      //remoteVideoElement.addEventListener('canplay', function (e) {
-      //  canvas.setAttribute('width', video.videoWidth);
-      //  canvas.setAttribute('height', video.videoHeight);
-      //}, false);
-      // Wait for the video to start to play
-      remoteVideoElement.addEventListener('play', function () {
-        detectBtn.disabled = false;
-      }, false);
-
-      detectBtn.addEventListener('click', function () {
-        if (isPosenetActive) {
-          detectBtn.classList.add("mui-btn--primary");
-          detectBtn.classList.remove("mui-btn--danger");
-          console.log("#detectPoseInRealTime STOP");
-          window.cancelAnimationFrame(requestId);
-        }else{
-          detectBtn.classList.remove("mui-btn--primary");
-          detectBtn.classList.add("mui-btn--danger");
-          console.log("#detectPoseInRealTime GO");
-          detectPoseInRealTime(remoteVideoElement);
+        html,
+        body {
+            height: 100%;
         }
-        isPosenetActive = !isPosenetActive;
-      }, false);
-    }
-    window.addEventListener('DOMContentLoaded', bindPage);
-  </script>
+
+        html,
+        body,
+        input,
+        textarea,
+        button {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.004);
+        }
+
+
+        /**
+ * Header CSS
+ */
+
+        header {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 0;
+            z-index: 2;
+        }
+
+        header ul.mui-list--inline {
+            margin-bottom: 0;
+        }
+
+        header a {
+            color: white;
+        }
+
+        header table {
+            width: 100%;
+        }
+
+        /**
+ * Content CSS
+ */
+
+        #content-wrapper {
+            min-height: 100%;
+
+            /* sticky footer */
+            box-sizing: border-box;
+            margin-bottom: -100px;
+            padding-bottom: 100px;
+        }
+
+
+        /**
+ * Footer CSS
+ */
+
+        footer {
+            box-sizing: border-box;
+            height: 100px;
+            background-color: #eee;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 35px;
+        }
+    </style>
 </head>
+
 <body>
-  <!-- example content -->
-  <div class="mui-container">
-    <div class="mui-panel">
-      <h1>Posenet</h1>
-      <video id="remoteVideo" autoplay playsinline controls muted style="display:inline"></video>
-      <canvas id='output'></canvas>
-      <button id="Connect" class="mui-btn mui-btn--primary mui-btn--raised mui-btn--danger">Connect</button>
-      <button id="detectBtn" class="mui-btn mui-btn--raised mui-btn--danger" disabled>Detect</button>
-      <button id="Disconnect" class="mui-btn mui-btn--primary mui-btn--raised">Disconnect </button>
-      <p>Credits <a href="https://github.com/kclyu/rpi-webrtc-streamer">rpi-webrtc-streamer from kclyu</a>
-           and <a href="https://github.com/tensorflow/tfjs-models/tree/master/posenet">PoseNet Model from tensorflow.js</a></p>
+    <header class="mui-appbar mui--z1">
+        <div class="mui-container">
+            <table>
+                <tr class="mui--appbar-height">
+                    <td class="mui--text-title mui--text-center">IronMan</td>
+                </tr>
+            </table>
+        </div>
+    </header>
+    <div id="content-wrapper" class="mui--text-center" >
+        <div class="mui--appbar-height"></div>
+        <br>
+        <br>
+        <div class="mui--text-display3">Web</div>
+        <a class="mui-btn mui-btn--raised" href="/web">Basic <i class="fa fa-hand-o-up"></i></a>
+        <a class="mui-btn mui-btn--raised" href="/web/next" >Basic&Color <i class="fa fa-hand-o-up"></i><i class="fa fa-paint-brush"></i></a>
+        <a class="mui-btn mui-btn--raised" href="/web/move">Move <i class="fa fa-arrows-alt"></i></a>
+        <a class="mui-btn mui-btn--raised" href="/web/color">Color <i class="fa fa-paint-brush"></i></a>
+        <a class="mui-btn mui-btn--raised" href="/web/pattern">Pattern <i class="fa fa-globe"></i></a>
+        <br>
+        <br>
+        <div class="mui--text-display3">Admin</div>
+        <a class="mui-btn mui-btn--raised" href="/admin">IHM <i class="fa fa-cogs"></i></a> 
+        <a class="mui-btn mui-btn--raised" href="/admin/simulator">Simulation</a>
+        <a class="mui-btn mui-btn--raised" href="/pm2">Pm2</a>
+        <a class="mui-btn mui-btn--raised" href="/admin/pull" target="_blank">Git Pull</a>
+        <br>
+        <br>
+        <div class="mui--text-display3">Webrtc</div>
+        <a class="mui-btn mui-btn--raised" href="/posenet.html">Posenet <i class="fa fa-child"></i></a> 
+        <a class="mui-btn mui-btn--raised" href="/rws.html">Rpi Webrtc Streamer <i class="fa fa-play-circle"></i></a> 
+        <br>
     </div>
-  </div>
+    <footer>
+        <div class="mui-container mui--text-center">
+            Made with ♥ by <a href="https://naoned-makers.github.io/">Naoned-Makers</a>
+        </div>
+    </footer>
 </body>
 
 </html>

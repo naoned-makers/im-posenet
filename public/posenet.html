@@ -1,0 +1,135 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- load custom font -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet" type="text/css" />
+  <!-- load MUI -->
+  <link href="css/mui.min.css" rel="stylesheet" type="text/css" />
+  <script src="js/third_party/mui.min.js"></script>
+  <!-- custom font css -->
+  <style>
+    body {
+        font-family: "Roboto", "Helvetica Neue", Helvetica, Arial;
+      }
+  </style>
+  <!-- Param and graph lib -->
+  <script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.2/build/dat.gui.min.js"></script>
+  <script src="https://rawgit.com/mrdoob/stats.js/master/build/stats.min.js"></script>
+  <!-- Load TensorFlow.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.7"></script>
+  <!-- Load Posenet -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@0.1.2"></script>
+  <!-- Load Posenet canvas ui draw functions -->
+  <script src="js/demo_util.js"></script>
+  <!-- Load Posenet parametrage gui functions -->
+  <script src="js/camera.js"></script>
+
+  <!-- Load webrtc stuff from rws -->
+  <script src="js/common.js"></script>
+  <script src="js/sdputils.js"></script>
+  <script src="js/peerconnection_client.js"></script>
+  <script src="js/websocket_signaling.js"></script>
+  <script src="js/third_party/adapter-latest.js"></script>
+
+  <script src="https://cdn.webrtc-experiment.com/getStats.min.js"></script>
+
+  <script type="text/javascript">
+
+    const videoWidth = 600;
+    const videoHeight = 500;
+
+    /**
+     * Kicks off the demo by loading the posenet model, finding and loading
+     * available camera devices, and setting off the detectPoseInRealTime function.
+     */
+    async function bindPage() {
+      var remoteVideoElement = document.getElementById('remoteVideo');
+
+      var canvas = document.getElementById('output');
+      var ctx = canvas.getContext('2d');
+
+      var connectButton = document.getElementById("Connect");
+      var disconnectButton = document.getElementById("Disconnect");
+      var detectBtn = document.getElementById('detectBtn');
+      var webrtcStats = document.getElementById("webrtcStats");
+      var isPosenetActive = false;
+
+      //configure webrtc Signaling
+      var websocketSignalingChannel = new WebSocketSignalingChannel(connectButton, disconnectButton, remoteVideoElement);
+
+      // Load the PoseNet model weights with architecture 0.75
+      const net = await posenet.load(0.75);
+
+      setupGui([], net);
+      setupFPS();
+
+      remoteVideoElement.width = videoWidth;
+      remoteVideoElement.height = videoHeight;
+      //canvas.width = videoWidth;
+      //canvas.height = videoHeight;
+
+      //detectPoseInRealTime(video, net);
+
+
+      // Wait until the video stream can play
+      //remoteVideoElement.addEventListener('canplay', function (e) {
+      //  canvas.setAttribute('width', video.videoWidth);
+      //  canvas.setAttribute('height', video.videoHeight);
+      //}, false);
+      // Wait for the video to start to play
+      remoteVideoElement.addEventListener('play', function () {
+        console.log("#remoteVideo play");
+        detectBtn.disabled = false;
+      }, false);
+
+      detectBtn.addEventListener('click', function () {
+        if (window.isPosenetActive) {
+          onPeerConnectionClose();
+        } else {
+          detectBtn.classList.remove("mui-btn--primary");
+          detectBtn.classList.add("mui-btn--danger");
+          console.log("#detectPoseInRealTime GO");
+          detectPoseInRealTime(remoteVideoElement);
+          window.isPosenetActive = true;
+        }
+      }, false);
+    }
+    window.addEventListener('DOMContentLoaded', bindPage);
+    function displayWebrtcStats(data) {
+      webrtcStats.innerText = data.bandwidth.availableSendBandwidth + " " + data.resolutions.recv.height + "x" + data.resolutions.recv.width + "  " + data.video.recv.codecs[0] + "  " + data.video.recv.availableBandwidth;
+      //console.log(data.bandwidth.availableSendBandwidth + " " + data.resolutions.recv.height + "x" + data.resolutions.recv.width + "  " + data.video.recv.codecs[0] + "  " + data.video.recv.availableBandwidth);
+    }
+    function onPeerConnectionClose() {
+      detectBtn.classList.add("mui-btn--primary");
+      detectBtn.classList.remove("mui-btn--danger");
+      console.log("#detectPoseInRealTime STOP");
+      window.cancelAnimationFrame(requestId);
+      window.isPosenetActive = false;
+    }
+  </script>
+</head>
+
+<body>
+  <!-- example content -->
+  <div class="mui-container">
+    <div class="mui-panel">
+      <h1>Posenet</h1>
+      <video id="remoteVideo" autoplay playsinline muted style="display:inline;-webkit-transform: scaleX(-1);transform: scaleX(-1);"></video>
+      <p>
+        <button id="Connect" class="mui-btn mui-btn--primary mui-btn--raised mui-btn--danger">Connect</button>
+        <button id="detectBtn" class="mui-btn mui-btn--raised mui-btn--danger" disabled>Detect</button>
+        <button id="Disconnect" class="mui-btn mui-btn--primary mui-btn--raised">Disconnect </button>
+      </p>
+      <canvas id='output'></canvas>
+      <p>chrome://webrtc-internals <span id="webrtcStats"></span></p>
+      <p>Credits <a href="https://github.com/kclyu/rpi-webrtc-streamer">rpi-webrtc-streamer from kclyu</a>
+        and <a href="https://github.com/tensorflow/tfjs-models/tree/master/posenet">PoseNet Model from tensorflow.js</a></p>
+    </div>
+  </div>
+</body>
+
+</html>
