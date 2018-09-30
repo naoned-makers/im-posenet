@@ -24,9 +24,9 @@
   <!-- Load Posenet -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@0.1.2"></script>
   <!-- Load Posenet canvas ui draw functions -->
-  <script src="js/demo_util.js"></script>
+  <script src="js/draw_utils_basic.js"></script>
   <!-- Load Posenet parametrage gui functions -->
-  <script src="js/camera.js"></script>
+  <script src="js/detect.js"></script>
 
   <!-- Load webrtc stuff from rws -->
   <script src="js/common.js"></script>
@@ -39,12 +39,11 @@
 
   <script type="text/javascript">
 
-    const videoWidth = 600;
-    const videoHeight = 500;
+    const videoWidth = 640;
+    const videoHeight = 480;
 
     /**
-     * Kicks off the demo by loading the posenet model, finding and loading
-     * available camera devices, and setting off the detectPoseInRealTime function.
+     * Kicks off the demo by loading the posenet model, prepare webrtc stream and setting off the detectPoseInRealTime function.
      */
     async function bindPage() {
       var remoteVideoElement = document.getElementById('remoteVideo');
@@ -88,7 +87,12 @@
 
       detectBtn.addEventListener('click', function () {
         if (window.isPosenetActive) {
-          onPeerConnectionClose();
+          detectBtn.classList.add("mui-btn--primary");
+          detectBtn.classList.remove("mui-btn--danger");
+          console.log("#detectPoseInRealTime STOP");
+          window.cancelAnimationFrame(requestId);
+          window.isPosenetActive = false;
+          document.getElementById('output').getContext('2d').clearRect(0, 0, videoWidth, videoHeight);
         } else {
           detectBtn.classList.remove("mui-btn--primary");
           detectBtn.classList.add("mui-btn--danger");
@@ -106,9 +110,12 @@
     function onPeerConnectionClose() {
       detectBtn.classList.add("mui-btn--primary");
       detectBtn.classList.remove("mui-btn--danger");
-      console.log("#detectPoseInRealTime STOP");
+      console.log("#WebRTC Close");
       window.cancelAnimationFrame(requestId);
       window.isPosenetActive = false;
+      detectBtn.disabled = true;
+      displayWebrtcStats({bandwidth:{availableSendBandwidth:''},resolutions:{recv:{height:'',width:''}},video:{recv:{codecs:[''],availableBandwidth:''}}});
+      document.getElementById('output').getContext('2d').clearRect(0, 0, videoWidth, videoHeight);
     }
   </script>
 </head>
@@ -119,7 +126,7 @@
     <div class="mui-panel">
       <h1>Posenet</h1>
       <video id="remoteVideo" autoplay playsinline muted style="display:inline;-webkit-transform: scaleX(-1);transform: scaleX(-1);"></video>
-      <p>
+      <p class="mui--text-center">
         <button id="Connect" class="mui-btn mui-btn--primary mui-btn--raised mui-btn--danger">Connect</button>
         <button id="detectBtn" class="mui-btn mui-btn--raised mui-btn--danger" disabled>Detect</button>
         <button id="Disconnect" class="mui-btn mui-btn--primary mui-btn--raised">Disconnect </button>

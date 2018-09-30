@@ -18,6 +18,7 @@
 
 
 const stats = new Stats();
+const outputChannel = new BroadcastChannel('output-canvas');
 var requestId;
 
 function isAndroid() {
@@ -54,6 +55,7 @@ const guiState = {
     showSkeleton: true,
     showPoints: true,
     showBoundingBox: false,
+    broadcast:false,
   },
   net: null,
 };
@@ -118,6 +120,7 @@ function setupGui(cameras, net) {
   output.add(guiState.output, 'showSkeleton');
   output.add(guiState.output, 'showPoints');
   output.add(guiState.output, 'showBoundingBox');
+  output.add(guiState.output, 'broadcast');
   output.open();
 
 
@@ -229,6 +232,12 @@ function detectPoseInRealTime(video, net) {
         }
       }
     });
+
+    if (guiState.output.broadcast) {
+      canvas.toBlob(function(blob) {
+        outputChannel.postMessage(blob);
+      });
+    }
 
     // End monitoring code for frames per second
     stats.end();

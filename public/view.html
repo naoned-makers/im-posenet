@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Posenet View</title>
+    <style type="">
+        html,
+        body {
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body></body>
+<script>
+    const canvas = document.createElement("canvas");
+    document.body.appendChild(canvas);
+    const context = canvas.getContext("2d");
+    const outputChannel = new BroadcastChannel('output-canvas');
+    var img = new Image();
+    outputChannel.onmessage = function (e) {
+        console.log(e);
+        img.onload = function () {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            context.drawImage(img, 0, 0)
+        }
+        img.src = URL.createObjectURL(e.data);
+    };
+</script>
+
+</html>
