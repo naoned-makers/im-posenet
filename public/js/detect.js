@@ -57,6 +57,10 @@ const guiState = {
     showBoundingBox: false,
     broadcast:false,
   },
+  interpretation: {
+    armAngle:true,
+    facePosition:true,
+  },
   net: null,
 };
 
@@ -122,6 +126,11 @@ function setupGui(cameras, net) {
   output.add(guiState.output, 'showBoundingBox');
   output.add(guiState.output, 'broadcast');
   output.open();
+
+  let interpretation = gui.addFolder('Interpretation');
+  interpretation.add(guiState.interpretation, 'armAngle');
+  interpretation.add(guiState.interpretation, 'facePosition');
+  interpretation.open();
 
 
   architectureController.onChange(function(architecture) {
@@ -219,7 +228,7 @@ function detectPoseInRealTime(video, net) {
     // For each pose (i.e. person) detected in an image, loop through the poses
     // and draw the resulting skeleton and keypoints if over certain confidence
     // scores
-    poses.forEach(({score, keypoints}) => {
+    poses.forEach(({score, keypoints},index) => {
       if (score >= minPoseConfidence) {
         if (guiState.output.showPoints) {
           drawKeypoints(keypoints, minPartConfidence, ctx);
@@ -229,6 +238,14 @@ function detectPoseInRealTime(video, net) {
         }
         if (guiState.output.showBoundingBox) {
           drawBoundingBox(keypoints, ctx);
+        }
+        //to simplify only analyse the first one
+        if(guiState.interpretation.armAngle && index ==0){
+          analyseArmAngle(keypoints, minPartConfidence, ctx);  
+        }
+        //to simplify only analyse the first one
+        if(guiState.interpretation.facePosition && index ==0){
+          analyseFacePosition(keypoints, minPartConfidence, ctx);  
         }
       }
     });

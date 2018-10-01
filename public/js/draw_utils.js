@@ -1,3 +1,4 @@
+//Mostly form move mirror experiment
 const red = '#D31517';
 const green = '#2ADCB6';
 const orange = '#E9572A';
@@ -76,9 +77,24 @@ function drawSegment(_ref2, _ref3, color, scale, ctx) {
     ctx.closePath();
 }
 
+/**
+ * Draws a pose skeleton by looking up all adjacent keypoints/joints
+ */
+function drawSkeleton(keypoints, minConfidence, ctx, scale = 1) {
+    const adjacentKeyPoints = posenet.getAdjacentKeyPoints(keypoints, minConfidence);
+  
+    ctx.lineWidth = 10;
+    ctx.lineCap = "round";
+
+    adjacentKeyPoints.forEach((keypoints) => {
+      drawSegment(toTuple(keypoints[0].position),toTuple(keypoints[1].position), 'red', scale, ctx);
+    });
+
+  }
+
 // to do: reduce/simplify code once add types to adjacentKeyPoints
 
-function drawSkeleton(keypoints, minConfidence, ctx) {
+function drawSkeletonOri(keypoints, minConfidence, ctx) {
     var scale = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
 
     ctx.lineWidth = 10;
@@ -121,41 +137,41 @@ function drawSkeleton(keypoints, minConfidence, ctx) {
         drawSegment(left_shoulder, left_elbow, yellow, scale, ctx);
     }
     if (le > minConfidence && lw > minConfidence) {
-        drawSegment(left_elbow, left_wrist, red, scale, ctx);
+        //drawSegment(left_elbow, left_wrist, red, scale, ctx);
     }
 
     if (rs > minConfidence && re > minConfidence) {
         drawSegment(right_shoulder, right_elbow, orange, scale, ctx);
     }
     if (re > minConfidence && rw > minConfidence) {
-        drawSegment(right_elbow, right_wrist, yellow, scale, ctx);
+        //drawSegment(right_elbow, right_wrist, yellow, scale, ctx);
     }
 
     // uppper to lower
     if (ls > minConfidence && lh > minConfidence) {
-        drawSegment(left_shoulder, left_hip, orange, scale, ctx);
+        //drawSegment(left_shoulder, left_hip, orange, scale, ctx);
     }
     if (rs > minConfidence && rh > minConfidence) {
-        drawSegment(right_shoulder, right_hip, green, scale, ctx);
+        //drawSegment(right_shoulder, right_hip, green, scale, ctx);
     }
 
     // lower body
     if (lh > minConfidence && rh > minConfidence) {
-        drawSegment(left_hip, right_hip, red, scale, ctx);
+        //drawSegment(left_hip, right_hip, red, scale, ctx);
     }
 
     if (lh > minConfidence && lk > minConfidence) {
-        drawSegment(left_hip, left_knee, green, scale, ctx);
+        //drawSegment(left_hip, left_knee, green, scale, ctx);
     }
     if (lk > minConfidence && la > minConfidence) {
-        drawSegment(left_knee, left_ankle, blue, scale, ctx);
+        //drawSegment(left_knee, left_ankle, blue, scale, ctx);
     }
 
     if (rh > minConfidence && rk > minConfidence) {
-        drawSegment(right_hip, right_knee, blue, scale, ctx);
+        //drawSegment(right_hip, right_knee, blue, scale, ctx);
     }
     if (rk > minConfidence && ra > minConfidence) {
-        drawSegment(right_knee, right_ankle, orange, scale, ctx);
+        //drawSegment(right_knee, right_ankle, orange, scale, ctx);
     }
 }
 
