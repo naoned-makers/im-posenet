@@ -34,7 +34,7 @@ function isMobile() {
 }
 
 const guiState = {
-  algorithm: 'no-pose',
+  algorithm: 'single-pose',
   input: {
     mobileNetArchitecture: isMobile() ? '0.50' : '0.75',
     outputStride: 16,
@@ -241,11 +241,13 @@ function detectPoseInRealTime(video, net) {
         }
         //to simplify only analyse the first one
         if(guiState.interpretation.armAngle && index ==0){
-          analyseArmAngle(keypoints, minPartConfidence, ctx);  
+          const armAngle = analyseArmAngle(keypoints, minPartConfidence, ctx);  
+          armAngle && console.log(armAngle);
         }
         //to simplify only analyse the first one
         if(guiState.interpretation.facePosition && index ==0){
-          analyseFacePosition(keypoints, minPartConfidence, ctx);  
+          const facePosition = analyseFacePosition(keypoints, minPartConfidence, ctx); 
+          facePosition && console.log(facePosition);
         }
       }
     });

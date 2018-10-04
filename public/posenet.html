@@ -38,7 +38,7 @@
   <script src="https://cdn.webrtc-experiment.com/getStats.min.js"></script>
 
     <!-- Load mqtt client -->
-    <script src="js/mqtt.min.js"></script>
+    <script src="js/third_party/mqtt.min.js"></script>
 
   <script type="text/javascript">
 
@@ -133,30 +133,49 @@
         var AB = Math.sqrt(Math.pow(B.x-A.x,2)+ Math.pow(B.y-A.y,2));    
         var BC = Math.sqrt(Math.pow(B.x-C.x,2)+ Math.pow(B.y-C.y,2)); 
         var AC = Math.sqrt(Math.pow(C.x-A.x,2)+ Math.pow(C.y-A.y,2));
-        return ((Math.acos((BC*BC+AB*AB-AC*AC)/(2*BC*AB)))*180)/Math.PI
+        return ((Math.acos((BC*BC+AB*AB-AC*AC)/(2*BC*AB)))*180)/Math.PI;
     }
 
+    /**
+     * return an array of part angle degree
+     * body vs humerus for im arm control and humerus vs radius for im hand control
+     * [leftarm,lefthand,rightarm,righthand]
+     */
     function analyseArmAngle(keypoints, minConfidence, ctx){
-      //angle ABC container
-      var angle = {leftarm:[],rightarm:[],lefthand:[],righthand:[]};
-            /*console.log(keypoints[0].part,keypoints[1].part);
-          leftHip leftShoulder
-          leftElbow leftShoulder
-          leftElbow leftWrist
-          leftHip leftKnee
-          rightHip rightShoulder
-          rightElbow rightShoulder
-          rightElbow rightWrist
-          rightHip rightKnee
-          leftShoulder rightShoulder
-          leftHip rightHip
-
-      ...numbers
-        */
-
+      let partAngle = {};
+      const partPoint = keypointsToObject(keypoints,minConfidence);
+      if(!!partPoint["leftHip"] && !!partPoint["leftShoulder"] && !!partPoint["leftElbow"]){
+        partAngle.leftarm =  find_angle(partPoint["leftHip"].position, partPoint["leftShoulder"].position,partPoint["leftElbow"].position);
+      }
+      if(!!partPoint["leftShoulder"] && !!partPoint["leftElbow"] && !!partPoint["leftWrist"]){
+        partAngle.lefthand =  find_angle(partPoint["leftShoulder"].position, partPoint["leftElbow"].position,partPoint["leftWrist"].position);
+      }
+      if(!!partPoint["rightHip"] && !!partPoint["rightShoulder"] && !!partPoint["rightElbow"]){
+        partAngle.rightarm =  find_angle(partPoint["rightHip"].position, partPoint["rightShoulder"].position,partPoint["rightElbow"].position);
+      }
+      if(!!partPoint["rightShoulder"] && !!partPoint["rightElbow"] && !!partPoint["rightWrist"]){
+        partAngle.righthand =  find_angle(partPoint["rightShoulder"].position, partPoint["rightElbow"].position,partPoint["rightWrist"].position);
+      }
+      return Object.keys(partAngle).length>0 ? partAngle:null;
     }
+    /*
+    * find smiley face position and size
+    */
     function analyseFacePosition(keypoints, minConfidence, ctx){
+      const partPoint = keypointsToObject(keypoints,minConfidence);
+      if(!!partPoint["nose"] && !!partPoint["leftEar"] && !!partPoint["rightEar"]){
+        //we have a face
+        return {nose:partPoint["nose"].position, radius: (Math.hypot(partPoint["leftEar"].position.x - partPoint["rightEar"].position.x, partPoint["leftEar"].position.y -partPoint["rightEar"].position.y) )/2}; 
+      }
+    }
 
+    function keypointsToObject(keypoints,minConfidence){
+      return keypoints.reduce((accumulator, currentValue) => {
+        if(currentValue.score > minConfidence){
+          accumulator[currentValue.part] = currentValue
+        }
+        return accumulator;
+      },{});
     }
 
     /**
@@ -164,6 +183,9 @@
     */
     var urlParams = new URLSearchParams(window.location.search);
     var mqttServer = 'wss://'+window.location.hostname+'/mqtt/ws';
+    if (urlParams.get('mqttServer')){
+            mqttServer = decodeURIComponent(urlParams.get('mqttServer'));
+    }
     var client = mqtt.connect(mqttServer,{clientId:'posenet_'+ Math.random().toString(16).substr(2, 8)});
     client.on('connect', function () {         console.log('connect');    })
     client.on('close', function () {         console.log('close');    })

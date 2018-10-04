@@ -83,7 +83,7 @@ function drawSegment(_ref2, _ref3, color, scale, ctx) {
 function drawSkeleton(keypoints, minConfidence, ctx, scale = 1) {
     const adjacentKeyPoints = posenet.getAdjacentKeyPoints(keypoints, minConfidence);
   
-    ctx.lineWidth = 10;
+    ctx.lineWidth = 5;
     ctx.lineCap = "round";
 
     adjacentKeyPoints.forEach((keypoints) => {
