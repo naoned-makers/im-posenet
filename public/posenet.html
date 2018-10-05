@@ -24,7 +24,7 @@
   <!-- Load Posenet -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@0.1.2"></script>
   <!-- Load Posenet canvas ui draw functions -->
-  <script src="js/draw_utils.js"></script>
+  <script src="js/demo_util.js"></script>
   <!-- Load Posenet parametrage gui functions -->
   <script src="js/detect.js"></script>
 
@@ -155,6 +155,8 @@
       }
       if(!!partPoint["rightShoulder"] && !!partPoint["rightElbow"] && !!partPoint["rightWrist"]){
         partAngle.righthand =  find_angle(partPoint["rightShoulder"].position, partPoint["rightElbow"].position,partPoint["rightWrist"].position);
+        //let strPayLoad = "{\"origin\":\"im-posenet\" \"absPosition\":" + Math.ceil(partAngle.righthand/180*100) + " }";
+        //client.publish("im/command/im/command/righthand/set",strPayLoad);
       }
       return Object.keys(partAngle).length>0 ? partAngle:null;
     }
@@ -164,8 +166,12 @@
     function analyseFacePosition(keypoints, minConfidence, ctx){
       const partPoint = keypointsToObject(keypoints,minConfidence);
       if(!!partPoint["nose"] && !!partPoint["leftEar"] && !!partPoint["rightEar"]){
+
+        let strPayLoad = "{\"origin\":\"im-posenet\" \"absPosition\":" + Math.ceil(partPoint["nose"].position.x/600*100) + " }";
+        //client.publish("im/command/im/command/head/facetrackmove",strPayLoad);
         //we have a face
         return {nose:partPoint["nose"].position, radius: (Math.hypot(partPoint["leftEar"].position.x - partPoint["rightEar"].position.x, partPoint["leftEar"].position.y -partPoint["rightEar"].position.y) )/2}; 
+      
       }
     }
 
