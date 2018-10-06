@@ -39,11 +39,21 @@
 
     <!-- Load mqtt client -->
     <script src="js/third_party/mqtt.min.js"></script>
-
+    <!-- replay -->
+    <script src="js/record.js"></script>
+  <style>
+    .blink_me {
+      animation: blinker 1s linear infinite;
+    }
+    @keyframes blinker {  
+      50% { opacity: 0; }
+    }
+  </style>
   <script type="text/javascript">
 
     const videoWidth = 640;
     const videoHeight = 480;
+    var mediaRecorder;
 
     /**
      * Kicks off the demo by loading the posenet model, prepare webrtc stream and setting off the detectPoseInRealTime function.
@@ -56,6 +66,8 @@
 
       var connectButton = document.getElementById("Connect");
       var disconnectButton = document.getElementById("Disconnect");
+      var recordButton = document.getElementById("Record");
+      var playFile = document.getElementById("PlayFile");
       var detectBtn = document.getElementById('detectBtn');
       var webrtcStats = document.getElementById("webrtcStats");
       var isPosenetActive = false;
@@ -104,6 +116,21 @@
           window.isPosenetActive = true;
         }
       }, false);
+
+      recordButton.addEventListener('click', function (event) {
+        if(event.target.classList.contains("blink_me")){
+          event.target.classList.remove("blink_me");
+          mediaRecorder.stop();
+          download();
+        }else{
+         event.target.classList.add("blink_me");
+         var options = {mimeType: 'video/webm; codecs=vp9'};
+         mediaRecorder = new MediaRecorder(remoteVideoElement.srcObject,options);
+         mediaRecorder.ondataavailable = handleDataAvailable;
+         mediaRecorder.start(1000);
+        }
+      });
+      playFile.addEventListener('change', playSelectedFile, false);
     }
     window.addEventListener('DOMContentLoaded', bindPage);
     function displayWebrtcStats(data) {
@@ -193,8 +220,8 @@
             mqttServer = decodeURIComponent(urlParams.get('mqttServer'));
     }
     var client = mqtt.connect(mqttServer,{clientId:'posenet_'+ Math.random().toString(16).substr(2, 8)});
-    client.on('connect', function () {         console.log('connect');    })
-    client.on('close', function () {         console.log('close');    })
+    client.on('mqtt connect', function () {         console.log('connect');    })
+    client.on('mqtt close', function () {         console.log('close');    })
 
   </script>
 </head>
@@ -209,6 +236,8 @@
         <button id="Connect" class="mui-btn mui-btn--primary mui-btn--raised mui-btn--danger">Connect</button>
         <button id="detectBtn" class="mui-btn mui-btn--raised mui-btn--danger" disabled>Detect</button>
         <button id="Disconnect" class="mui-btn mui-btn--primary mui-btn--raised">Disconnect </button>
+        <button id="Record" class="mui-btn mui-btn--accent  mui-btn--small">Record </button>
+        <input  id="PlayFile" type="file" accept="video/*"  class="mui-btn mui-btn--accent  mui-btn--small"/>
       </p>
       <canvas id='output'></canvas>
       <p>chrome://webrtc-internals <span id="webrtcStats"></span></p>
